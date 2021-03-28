@@ -9,3 +9,6 @@ Setting up
 Setting this up shouldn't be hard. There are 2 ways to do this, either editing the docker-compose.yml file (preferred)
 or you can edit the config.py file. Environment values (docker-compose.yml) have preference over config.py.
 
+Using docker-compose
+^^^^^^^^^^^^^^^^^^^^
+The docker-compose.yml
