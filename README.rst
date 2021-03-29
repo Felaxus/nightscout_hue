@@ -4,6 +4,10 @@ How to set-up the nightscout-phillips integration
 
 | This project is made to display the insulin level of a pump controlled via nighscout. Adjusting the light of the room depending on what you set your environment variables.
 
+TO-DO
+*****
+I gotta optimize json
+
 Setting up
 ==========
 Firstly, as per hosting there are multiple ways, due to the way this is built, a virtual private server isn't available
