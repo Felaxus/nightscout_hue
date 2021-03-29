@@ -1,6 +1,7 @@
 from os import environ as env
 
 import HueConnection
+from durations import Duration
 
 
 conn = HueConnection.HueConnector(
@@ -18,7 +19,7 @@ conn = HueConnection.HueConnector(
     start_time=env.get("START_TIME"),
     end_time=env.get("END_TIME"),
     timezone=env.get("TIMEZONE_DIFFERENCE"),
-    nightscout_difference=env.get("NIGHTSCOUT_TIME_LIMIT"),
+    nightscout_difference=Duration(env.get("NIGHTSCOUT_REALTIME_DIFFERENCE")).to_minutes(),
     token=env.get("TOKEN")
 )
 

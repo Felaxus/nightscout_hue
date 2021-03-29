@@ -1,11 +1,12 @@
 import logging
 import re
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 
 import pytz
 import requests
 import ujson
 from dateutil.parser import parse
+from twisted.internet import task, reactor
 
 from .errors import *
 
@@ -20,10 +21,7 @@ ip_regex = re.compile(
 class HueConnector:
 
     def __init__(self, *args, **kwargs):
-        nightscout_url = kwargs.get("n_url")
-        self.nightscout_url = requests.get(
-            f"{nightscout_url + '/' if not nightscout_url.endswith('/') else nightscout_url}api/v1/entries.json",
-            data={"count": 1}).json()
+        self.nightscout_url = kwargs.get("n_url")
         self.phillips_ip = ip_regex.fullmatch(kwargs.get("phillips_ip"))
         self.phillips_username = kwargs.get("phillips_user")
         self.light_id = kwargs.get("light_id")
@@ -36,9 +34,6 @@ class HueConnector:
         self.nightscout_time_limit = kwargs.get("nightscout_difference")
         self.token = kwargs.pop("token", None)
         self.local_mode = bool(self.token)
-        self.time_checker = TimeParser(nightscout_time=self.nightscout_url[0]['dateString'],
-                                       timezone_difference=self.timezone_difference)
-        self.real_timezone = self.time_checker.get_real_timezone()
 
         try:
             self.high_glucose = int(kwargs.get("high_glucose"))
@@ -48,16 +43,59 @@ class HueConnector:
 
         except TypeError:
             raise InvalidData("Invalid data has been given")
+        else:
+            self.colors = {
+                "RED": {
+                    "hue": 10,
+                    "sat": 240,
+                    "bri": self.brightness},
+                "ORANGE": {
+                    "hue": 4500,
+                    "sat": 250,
+                    "bri": self.brightness},
+                "GREEN": {
+                    "hue": 27000,
+                    "sat": 250,
+                    "bri": self.brightness},
+                "BLUE": {
+                    "hue": 45000,
+                    "sat": 250,
+                    "bri": self.brightness},
+                "PURPLE": {
+                    "hue": 50000,
+                    "sat": 250,
+                    "bri": self.brightness}
+            }
 
     def main(self):
-        if self.time_checker.in_range(self.start_time, self.end_time, self.real_timezone):
-            pass
-        else:
-            pass
+        if not self.time_checker.nightscout_in_range(self.real_timezone, int(self.nightscout_time_limit)):
+            print("Time diff too big")
+            return
+
+        if not self.time_checker.in_range(self.start_time, self.end_time, self.real_timezone):
+            log.info("Time not in range")
+            print("Not in range, turning off lights. Good night")
+            # Turn off lights
+            return
+
+    @property
+    def nightscout_json(self):
+        return requests.get(
+            f"{self.nightscout_url + '/' if not self.nightscout_url.endswith('/') else self.nightscout_url}api/v1/entries.json",
+            data={"count": 1},
+        ).json()
+
+    @property
+    def time_checker(self):
+        return TimeParser(self.nightscout_json[0]['dateString'], self.timezone_difference)
+
+    @property
+    def real_timezone(self):
+        return self.time_checker.get_real_timezone()
 
     def run(self):
-        # task.LoopingCall(self.main).start(self.refresh_rate)
-        # reactor.run()
+        task.LoopingCall(self.main).start(self.refresh_rate)
+        reactor.run()
 
 
 class TimeParser:
@@ -69,7 +107,12 @@ class TimeParser:
 
         self.timezone_difference = timezone_difference
 
-    def get_real_timezone(self):
+    def nightscout_in_range(self, now: timedelta, difference: int) -> bool:
+        diff = time(minute=difference)
+        x = (now - self.nightscout_time)
+        return x.seconds // 60 < diff.second // 60
+
+    def get_real_timezone(self) -> timedelta:
         now = datetime.now(pytz.timezone("GMT"))
         gmt_now = timedelta(hours=now.hour, minutes=now.minute, seconds=now.second)
         if self.timezone_difference == "0":
@@ -90,9 +133,5 @@ class TimeParser:
         end_time = timedelta(
             hours=int(end_time[0]), minutes=end_time[1] if end_time else 0
         )
-
-        print(start_time)
-        print(now)
-        print(end_time)
 
         return start_time < now < end_time
