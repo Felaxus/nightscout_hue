@@ -1,0 +1,4 @@
+requests==2.25.1
+toml==0.10.2
+Twisted==21.2.0
+ujson==4.0.2
