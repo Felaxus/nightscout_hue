@@ -119,4 +119,37 @@ edit it below
 
     This is basically from when the light starts, what do I mean by this. Well basically you will have a start
     time and an end_time, basically it will start transmitting light at start time and after end_time it will turn
-    lights off until start_time. An example would be `8:00`, making start time 8 AM
+    lights off until start_time. An example would be ``8:00``, making start time 8 AM
+
+.. topic:: END_TIME
+
+    This is basically from when the light ends, what do I mean by this. Well basically you will have a start
+    time and an end_time, basically it will start transmitting light at start time and after end_time it will turn
+    lights off until end_time. Beware your end_time cant be for example 1 AM. Maximum is ```23:59``
+
+.. topic:: TIMEZONE_DIFFERENCE
+
+    The difference in time zone with GMT, for example if you have 2 more hours than GMT you'd put ``+2``, if
+    you had 2 less hours than GMT you'd put ``-2``
+
+.. topic:: REFRESH_RATE
+
+    How many seconds it checks. For example if you put ``60`` It'd check the glucose level each 60 seconds (1 minute)
+
+.. topic:: NIGHTSCOUT_REALTIME_DIFFERENCE
+
+    The maximum time it allows of intransmission. For example, if the difference between the time now and the time
+    nightscout checked is bigger than the number of minutes specified here then it would throw DELAY_COLOR
+
+.. topic:: DELAY_COLOR
+
+    The color to put if NIGHTSCOUT_REALTIME_DIFFERENCE happens, available colors are RED, ORANGE, GREEN, BLUE, PURPLE
+
+.. topic:: LOCAL_MODE
+
+    Coming soon
+
+.. topic:: TOKEN
+
+    Coming soon
+
