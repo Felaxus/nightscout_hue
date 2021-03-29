@@ -21,9 +21,16 @@ ip_regex = re.compile(
 class HueConnector:
 
     def __init__(self, *args, **kwargs):
-        self.nightscout_url = kwargs.get("n_url")
-        self.phillips_ip = ip_regex.fullmatch(kwargs.get("phillips_ip"))
+        # Defining phillips IP
+        phillips_ip = kwargs.get("phillips_ip") if ip_regex.fullmatch(kwargs.get("phillips_ip")) else None
         self.phillips_username = kwargs.get("phillips_user")
+        if phillips_ip is None:
+            raise InvalidData("Invalid IP")
+        phillips_ip = phillips_ip + "/" if not phillips_ip.endswith("/") else phillips_ip
+        self.phillips_ip = phillips_ip + self.phillips_username + "/"
+
+        # Defines other variables
+        self.nightscout_url = kwargs.get("n_url")
         self.light_id = kwargs.get("light_id")
         self.high_color = kwargs.get("high_color")
         self.color_in_range = kwargs.get("color_in_range")
@@ -31,10 +38,12 @@ class HueConnector:
         self.start_time = kwargs.get("start_time")
         self.end_time = kwargs.get("end_time")
         self.timezone_difference = kwargs.get("timezone")
+        self.difference_color = kwargs.get("delay_color")
         self.nightscout_time_limit = kwargs.get("nightscout_difference")
         self.token = kwargs.pop("token", None)
         self.local_mode = bool(self.token)
 
+        # Checks the types of variables
         try:
             self.high_glucose = int(kwargs.get("high_glucose"))
             self.brightness = int(kwargs.get("brightness"))
@@ -48,35 +57,57 @@ class HueConnector:
                 "RED": {
                     "hue": 10,
                     "sat": 240,
-                    "bri": self.brightness},
+                    "bri": self.brightness,
+                    "on": True},
                 "ORANGE": {
                     "hue": 4500,
                     "sat": 250,
-                    "bri": self.brightness},
+                    "bri": self.brightness,
+                    "on": True},
                 "GREEN": {
                     "hue": 27000,
                     "sat": 250,
-                    "bri": self.brightness},
+                    "bri": self.brightness,
+                    "on": True},
                 "BLUE": {
                     "hue": 45000,
                     "sat": 250,
-                    "bri": self.brightness},
+                    "bri": self.brightness,
+                    "on": True},
                 "PURPLE": {
                     "hue": 50000,
                     "sat": 250,
-                    "bri": self.brightness}
+                    "bri": self.brightness,
+                    "on": True}
             }
 
     def main(self):
-        if not self.time_checker.nightscout_in_range(self.real_timezone, int(self.nightscout_time_limit)):
+        if self.delayed:
             print("Time diff too big")
             return
 
-        if not self.time_checker.in_range(self.start_time, self.end_time, self.real_timezone):
+        if not self.in_time_range:
             log.info("Time not in range")
             print("Not in range, turning off lights. Good night")
             # Turn off lights
             return
+        self.change_color()
+        print(f"Glucose {self.glucose_level} changing color to {self.get_color(self.glucose_level)}")
+
+    def get_color(self, glucose_level):
+        if glucose_level.upper().strip() == "HIGH":
+            return ujson.dumps(self.colors[self.high_color])
+        elif glucose_level.upper().strip() == "RANGE":
+            return ujson.dumps(self.colors[self.color_in_range])
+        elif glucose_level.upper().strip() == "DELAY":
+            return ujson.dumps(self.colors[self.difference_color])
+        elif glucose_level.upper().strip() == "LOW":
+            return ujson.dumps(self.colors[self.low_color])
+        raise InternalIssue("Wrong glucose level idk")
+
+    def change_color(self):
+        for i in self.light_id.split(','):
+            requests.put(f'http://{self.phillips_ip}lights/{i}/state', data=self.get_color(self.glucose_level))
 
     @property
     def nightscout_json(self):
@@ -92,6 +123,25 @@ class HueConnector:
     @property
     def real_timezone(self):
         return self.time_checker.get_real_timezone()
+
+    @property
+    def delayed(self):
+        return not self.time_checker.nightscout_in_range(self.real_timezone, int(self.nightscout_time_limit))
+
+    @property
+    def in_time_range(self):
+        return self.time_checker.in_range(self.start_time, self.end_time, self.real_timezone)
+
+    @property
+    def glucose_level(self):
+        glucose = self.nightscout_json[0]['sgv']
+        if glucose < self.low_glucose:
+            return "LOW"
+        if glucose > self.high_glucose:
+            return "HIGH"
+        if self.delayed:
+            return "DELAY"
+        return "RANGE"
 
     def run(self):
         task.LoopingCall(self.main).start(self.refresh_rate)

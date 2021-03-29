@@ -20,7 +20,8 @@ conn = HueConnection.HueConnector(
     end_time=env.get("END_TIME"),
     timezone=env.get("TIMEZONE_DIFFERENCE"),
     nightscout_difference=Duration(env.get("NIGHTSCOUT_REALTIME_DIFFERENCE")).to_minutes(),
-    token=env.get("TOKEN")
+    token=env.get("TOKEN"),
+    delay_color=env.get("DELAY_COLOR")
 )
 
 
