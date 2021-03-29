@@ -117,4 +117,6 @@ edit it below
 
 .. topic:: START_TIME
 
-    This is basically from when the light starts, what do I mean by this. Well basically you will have
+    This is basically from when the light starts, what do I mean by this. Well basically you will have a start
+    time and an end_time, basically it will start transmitting light at start time and after end_time it will turn
+    lights off until start_time. An example would be `8:00`, making start time 8 AM
