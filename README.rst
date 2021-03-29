@@ -153,3 +153,14 @@ edit it below
 
     Coming soon
 
+Running the script
+^^^^^^^^^^^^^^^^^^
+
+Last step is to actually run this, docker-compose makes this very simple just do
+
+.. code-block::
+
+    docker-compose up -d --build --remove-oprhans
+
+**Congrats, it should be working!**
+
