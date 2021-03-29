@@ -27,7 +27,7 @@ class HueConnector:
         self.phillips_username = kwargs.get("phillips_user")
         if phillips_ip is None:
             raise InvalidData("Invalid IP")
-        phillips_ip = phillips_ip + "/" if not phillips_ip.endswith("/") else phillips_ip
+        phillips_ip = phillips_ip + "/api/" if not phillips_ip.endswith("/") else phillips_ip + "api/"
         self.phillips_ip = phillips_ip + self.phillips_username + "/"
 
         # Defines other variables
@@ -83,18 +83,20 @@ class HueConnector:
             }
 
     def main(self):
-        # if self.delayed:
-        #     print("Time diff too big")
-        #     return
+        if self.delayed:
+            print(
+                f"Nighstout delay with real life is too big. Changing colour to {self.get_color(self.glucose_level, True)}")
+            self.change_color()
+            return
 
         if self.in_time_range:
             log.info("Time not in range")
             print("Not in range, turning off lights. Good night")
             # Turn off lights
             return
+        print(
+            f"Glucose {self.glucose_level} ({self.actual_glucose}) changing color to {self.get_color(self.glucose_level, True)}")
         self.change_color()
-
-        print(f"Glucose {self.glucose_level} ({self.actual_glucose}) changing color to {self.get_color(self.glucose_level, True)}")
 
     def get_color(self, glucose_level, name: Optional[bool] = None):
         if glucose_level.upper().strip() == "HIGH":
@@ -137,12 +139,12 @@ class HueConnector:
     @property
     def glucose_level(self):
         glucose = self.nightscout_json[0]['sgv']
+        if self.delayed:
+            return "DELAY"
         if glucose < self.low_glucose:
             return "LOW"
         if glucose > self.high_glucose:
             return "HIGH"
-        if self.delayed:
-            return "DELAY"
         return "RANGE"
 
     @property
