@@ -56,8 +56,8 @@ The `docker-compose.yml <https://github.com/Felaxus/nightscout_hue/blob/main/doc
           - PHILLIPS_USERNAME=NONE
           - BRIGHTNESS_LEVEL=NONE
           - LIGHT_ID=NONE
-          - HIGH_COLOR=NONE
           - HIGH_GLUCOSE_VALUE=NONE
+          - HIGH_COLOR=NONE
           - RANGE_COLOR=NONE
           - LOW_COLOR=NONE
           - LOW_GLUCOSE_VALUE=NONE
@@ -80,4 +80,41 @@ edit it below
 
     The ip of the phillips hue, to get this go `over here <https://discovery.meethue.com/>`_ and you'll find the IP adress
 
+.. topic:: PHILLIPS_USERNAME
 
+    The weird token-looking username you created earlier when setting up hue bridge api, scroll up
+
+.. topic:: BRIGHTNESS_LEVEL
+
+    The brightness you want the bulb to power up to, between 1-250
+
+.. topic:: LIGHT_ID
+
+    The light ID or IDs you want to change, we covered this eariler up. If you want to include more than 1 separate them with a comma. Example: 1,2 this would trigger lights 1 and 2
+
+.. topic:: HIGH_GLUCOSE_VALUE
+
+    The value that the code considers high. For example if this is 200, anything more than 200 is considered HIGH.
+
+.. topic:: HIGH_COLOR
+
+    The color the light should turn if the glucose level is higher than HIGH_GLUCOSE_VALUE. You assign one of 5 colors
+    the available colors are RED, ORANGE, GREEN, BLUE, PURPLE
+
+.. topic:: LOW_GLUCOSE_VALUE
+
+    The value that the code considers low. For example if this is 90, anything lower than 90 is considered LOW.
+
+.. topic:: LOW_COLOR
+
+    The color the light should turn if the glucose level is lower than LOW_GLUCOSE_VALUE. You assign one of 5 colors
+    the available colors are RED, ORANGE, GREEN, BLUE, PURPLE
+
+.. topic:: RANGE_COLOR
+
+    If color is in range, not higher than HIGH_GLUCOSE_VALUE and no lower than LOW_GLUCOSE_VALUE it will turn to this color
+    the available colors are RED, ORANGE, GREEN, BLUE, PURPLE
+
+.. topic:: START_TIME
+
+    This is basically from when the light starts, what do I mean by this. Well basically you will have
