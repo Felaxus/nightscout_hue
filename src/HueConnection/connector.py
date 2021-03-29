@@ -36,7 +36,7 @@ class HueConnector:
             self.high_glucose = int(kwargs.get("high_glucose"))
             self.brightness = int(kwargs.get("brightness"))
             self.refresh_rate = int(kwargs.get("refresh_rate"))
-            self.low_glucose_value = int(kwargs.get("low_glucose"))
+            self.low_glucose = int(kwargs.get("low_glucose"))
 
         except TypeError:
             raise InvalidData("Invalid data has been given")
