@@ -9,13 +9,16 @@ Setting up
 Firstly, as per hosting there are multiple ways, due to the way this is built, a virtual private server isn't available
 YET, however I plan on adding that feature soon. So at the moment the best way to host this is locally or with a `raspberry pi <https://www.raspberrypi.org>`_.
 
+Installing docker
+^^^^^^^^^^^^^^^^^
+
 Open a command prompt and download docker and docker-compose. To install docker on a raspberry pi follow `this <https://docs.docker.com/engine/install/debian/#install-using-the-convenience-script>`_
 or `this article <https://phoenixnap.com/kb/docker-on-raspberry-pi>`_. Furthermore if you want to install docker on any other
 platform to host locally this can obviously be achieved by going `here <https://docs.docker.com/get-docker/>`_ and
 following the instructions.
 
 Installing docker-compose
-*************************
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code-block::
 
@@ -65,3 +68,16 @@ The `docker-compose.yml <https://github.com/Felaxus/nightscout_hue/blob/main/doc
           - NIGHTSCOUT_REALTIME_DIFFERENCE=NONE
           - LOCAL_MODE=NONE
           - TOKEN=NONE
+
+You are interested in editing everything under environment, I will explain what to edit each value too and how to
+edit it below
+
+.. topic:: NIGHTSCOUT_URL
+
+    This is the url of your heroku or wherever you host nightscout. An example would be https://https://hello.herokuapp.com
+
+.. topic:: PHILLIPS_IP
+
+    The ip of the phillips hue, to get this go `over here <https://discovery.meethue.com/>`_ and you'll find the IP adress
+
+
