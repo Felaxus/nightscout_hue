@@ -74,7 +74,7 @@ edit it below
 
 .. topic:: NIGHTSCOUT_URL
 
-    This is the url of your heroku or wherever you host nightscout. An example would be https://https://hello.herokuapp.com
+    This is the url of your heroku or wherever you host nightscout. An example would be https://hello.herokuapp.com
 
 .. topic:: PHILLIPS_IP
 
