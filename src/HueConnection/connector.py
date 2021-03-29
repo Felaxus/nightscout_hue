@@ -1,6 +1,7 @@
 import logging
 import re
 from datetime import datetime, timedelta, time
+from typing import Optional
 
 import pytz
 import requests
@@ -82,27 +83,28 @@ class HueConnector:
             }
 
     def main(self):
-        if self.delayed:
-            print("Time diff too big")
-            return
+        # if self.delayed:
+        #     print("Time diff too big")
+        #     return
 
-        if not self.in_time_range:
+        if self.in_time_range:
             log.info("Time not in range")
             print("Not in range, turning off lights. Good night")
             # Turn off lights
             return
         self.change_color()
-        print(f"Glucose {self.glucose_level} changing color to {self.get_color(self.glucose_level)}")
 
-    def get_color(self, glucose_level):
+        print(f"Glucose {self.glucose_level} ({self.actual_glucose}) changing color to {self.get_color(self.glucose_level, True)}")
+
+    def get_color(self, glucose_level, name: Optional[bool] = None):
         if glucose_level.upper().strip() == "HIGH":
-            return ujson.dumps(self.colors[self.high_color])
+            return ujson.dumps(self.colors[self.high_color]) if not name else self.high_color
         elif glucose_level.upper().strip() == "RANGE":
-            return ujson.dumps(self.colors[self.color_in_range])
+            return ujson.dumps(self.colors[self.color_in_range]) if not name else self.color_in_range
         elif glucose_level.upper().strip() == "DELAY":
-            return ujson.dumps(self.colors[self.difference_color])
+            return ujson.dumps(self.colors[self.difference_color]) if not name else self.difference_color
         elif glucose_level.upper().strip() == "LOW":
-            return ujson.dumps(self.colors[self.low_color])
+            return ujson.dumps(self.colors[self.low_color]) if not name else self.low_color
         raise InternalIssue("Wrong glucose level idk")
 
     def change_color(self):
@@ -142,6 +144,10 @@ class HueConnector:
         if self.delayed:
             return "DELAY"
         return "RANGE"
+
+    @property
+    def actual_glucose(self):
+        return self.nightscout_json[0]['sgv']
 
     def run(self):
         task.LoopingCall(self.main).start(self.refresh_rate)
