@@ -1,1 +1,25 @@
-# Nothing yet
+version: "3.3"
+
+services:
+  main:
+    build: .
+    restart: on-failure
+    environment:
+      - PYTHONUNBUFFERED=1
+      - NIGHTSCOUT_URL=NONE
+      - PHILLIPS_IP=NONE
+      - PHILLIPS_USERNAME=NONE
+      - BRIGHTNESS_LEVEL=NONE
+      - LIGHT_ID=NONE
+      - HIGH_GLUCOSE_VALUE=NONE
+      - HIGH_COLOR=NONE
+      - RANGE_COLOR=NONE
+      - LOW_COLOR=NONE
+      - LOW_GLUCOSE_VALUE=NONE
+      - START_TIME=NONE
+      - END_TIME=NONE
+      - TIMEZONE_DIFFERENCE=NONE
+      - REFRESH_RATE=NONE
+      - NIGHTSCOUT_REALTIME_DIFFERENCE=NONE
+      - LOCAL_MODE=NONE
+      - TOKEN=NONE

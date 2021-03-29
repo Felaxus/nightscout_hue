@@ -7,6 +7,8 @@ RUN git clone https://github.com/Felaxus/nightscout_hue.git
 
 RUN cd nightscout_hue
 
-RUN rm Dockerfile docker-compose.yml
+RUN pip install --no-cache-dir -r requirements.txt
 
-ENTRYPOINT ["python", "src/main.py"]
+RUN rm Dockerfile docker-compose.yml requirements.txt
+
+ENTRYPOINT ["docker-entrypoiny.sh"]

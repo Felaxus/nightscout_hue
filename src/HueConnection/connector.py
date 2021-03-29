@@ -83,17 +83,18 @@ class HueConnector:
             }
 
     def main(self):
-        if self.delayed:
+        if not self.delayed:
             print(
                 f"Nighstout delay with real life is too big. Changing colour to {self.get_color(self.glucose_level, True)}")
             self.change_color()
             return
 
-        if self.in_time_range:
+        if not self.in_time_range:
             log.info("Time not in range")
             print("Not in range, turning off lights. Good night")
             # Turn off lights
             return
+
         print(
             f"Glucose {self.glucose_level} ({self.actual_glucose}) changing color to {self.get_color(self.glucose_level, True)}")
         self.change_color()
@@ -139,7 +140,7 @@ class HueConnector:
     @property
     def glucose_level(self):
         glucose = self.nightscout_json[0]['sgv']
-        if self.delayed:
+        if not self.delayed:
             return "DELAY"
         if glucose < self.low_glucose:
             return "LOW"
