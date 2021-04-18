@@ -1,13 +1,13 @@
 import logging
 import re
-from datetime import datetime, timedelta, time
+from datetime import datetime, time, timedelta
 from typing import Optional
 
 import pytz
 import requests
 import ujson
 from dateutil.parser import parse
-from twisted.internet import task, reactor
+from twisted.internet import reactor, task
 
 from .errors import *
 
@@ -16,18 +16,26 @@ requests.models.json = ujson
 log = logging.getLogger(__name__)
 
 ip_regex = re.compile(
-    r'^((25[0-5]|(2[0-4]|1[0-9]|[1-9]|)[0-9])(\.(?!$)|$)){4}$', re.IGNORECASE)
+    r"^((25[0-5]|(2[0-4]|1[0-9]|[1-9]|)[0-9])(\.(?!$)|$)){4}$", re.IGNORECASE
+)
 
 
 class HueConnector:
-
     def __init__(self, *args, **kwargs):
         # Defining phillips IP
-        phillips_ip = kwargs.get("phillips_ip") if ip_regex.fullmatch(kwargs.get("phillips_ip")) else None
+        phillips_ip = (
+            kwargs.get("phillips_ip")
+            if ip_regex.fullmatch(kwargs.get("phillips_ip"))
+            else None
+        )
         self.phillips_username = kwargs.get("phillips_user")
         if phillips_ip is None:
             raise InvalidData("Invalid IP")
-        phillips_ip = phillips_ip + "/api/" if not phillips_ip.endswith("/") else phillips_ip + "api/"
+        phillips_ip = (
+            phillips_ip + "/api/"
+            if not phillips_ip.endswith("/")
+            else phillips_ip + "api/"
+        )
         self.phillips_ip = phillips_ip + self.phillips_username + "/"
 
         # Defines other variables
@@ -56,36 +64,21 @@ class HueConnector:
             raise InvalidData("Invalid data has been given")
         else:
             self.colors = {
-                "RED": {
-                    "hue": 10,
-                    "sat": 240,
-                    "bri": self.brightness,
-                    "on": True},
-                "ORANGE": {
-                    "hue": 4500,
-                    "sat": 250,
-                    "bri": self.brightness,
-                    "on": True},
-                "GREEN": {
-                    "hue": 27000,
-                    "sat": 250,
-                    "bri": self.brightness,
-                    "on": True},
-                "BLUE": {
-                    "hue": 45000,
-                    "sat": 250,
-                    "bri": self.brightness,
-                    "on": True},
+                "RED": {"hue": 10, "sat": 240, "bri": self.brightness, "on": True},
+                "ORANGE": {"hue": 4500, "sat": 250, "bri": self.brightness, "on": True},
+                "GREEN": {"hue": 27000, "sat": 250, "bri": self.brightness, "on": True},
+                "BLUE": {"hue": 45000, "sat": 250, "bri": self.brightness, "on": True},
                 "PURPLE": {
                     "hue": 50000,
                     "sat": 250,
                     "bri": self.brightness,
-                    "on": True}
+                    "on": True,
+                },
             }
 
     def main(self):
         """Main loop of the program.
-           This loop gets latest nightscout information and acts accordingly!
+        This loop gets latest nightscout information and acts accordingly!
         """
         self.nightscout_json = requests.get(
             f"{self.nightscout_url + '/' if not self.nightscout_url.endswith('/') else self.nightscout_url}api/v1/entries.json",
@@ -94,7 +87,8 @@ class HueConnector:
 
         if not self.delayed:
             print(
-                f"Nighstout delay with real life is too big. Changing colour to {self.get_color(self.glucose_level, True)}")
+                f"Nighstout delay with real life is too big. Changing colour to {self.get_color(self.glucose_level, True)}"
+            )
             self.change_color()
             return
 
@@ -105,27 +99,47 @@ class HueConnector:
             return
 
         print(
-            f"Glucose {self.glucose_level} ({self.actual_glucose}) changing color to {self.get_color(self.glucose_level, True)}")
+            f"Glucose {self.glucose_level} ({self.actual_glucose}) changing color to {self.get_color(self.glucose_level, True)}"
+        )
         self.change_color()
 
     def get_color(self, glucose_level, name: Optional[bool] = None):
         if glucose_level.upper().strip() == "HIGH":
-            return ujson.dumps(self.colors[self.high_color]) if not name else self.high_color
+            return (
+                ujson.dumps(self.colors[self.high_color])
+                if not name
+                else self.high_color
+            )
         elif glucose_level.upper().strip() == "RANGE":
-            return ujson.dumps(self.colors[self.color_in_range]) if not name else self.color_in_range
+            return (
+                ujson.dumps(self.colors[self.color_in_range])
+                if not name
+                else self.color_in_range
+            )
         elif glucose_level.upper().strip() == "DELAY":
-            return ujson.dumps(self.colors[self.difference_color]) if not name else self.difference_color
+            return (
+                ujson.dumps(self.colors[self.difference_color])
+                if not name
+                else self.difference_color
+            )
         elif glucose_level.upper().strip() == "LOW":
-            return ujson.dumps(self.colors[self.low_color]) if not name else self.low_color
+            return (
+                ujson.dumps(self.colors[self.low_color]) if not name else self.low_color
+            )
         raise InternalIssue("Wrong glucose level idk")
 
     def change_color(self):
-        for i in self.light_id.split(','):
-            requests.put(f'http://{self.phillips_ip}lights/{i}/state', data=self.get_color(self.glucose_level))
+        for i in self.light_id.split(","):
+            requests.put(
+                f"http://{self.phillips_ip}lights/{i}/state",
+                data=self.get_color(self.glucose_level),
+            )
 
     @property
     def time_checker(self):
-        return TimeParser(self.nightscout_json[0]['dateString'], self.timezone_difference)
+        return TimeParser(
+            self.nightscout_json[0]["dateString"], self.timezone_difference
+        )
 
     @property
     def real_timezone(self):
@@ -133,15 +147,19 @@ class HueConnector:
 
     @property
     def delayed(self):
-        return not self.time_checker.nightscout_in_range(self.real_timezone, int(self.nightscout_time_limit))
+        return not self.time_checker.nightscout_in_range(
+            self.real_timezone, int(self.nightscout_time_limit)
+        )
 
     @property
     def in_time_range(self):
-        return self.time_checker.in_range(self.start_time, self.end_time, self.real_timezone)
+        return self.time_checker.in_range(
+            self.start_time, self.end_time, self.real_timezone
+        )
 
     @property
     def glucose_level(self):
-        glucose = self.nightscout_json[0]['sgv']
+        glucose = self.nightscout_json[0]["sgv"]
         if not self.delayed:
             return "DELAY"
         if glucose < self.low_glucose:
@@ -152,7 +170,7 @@ class HueConnector:
 
     @property
     def actual_glucose(self):
-        return self.nightscout_json[0]['sgv']
+        return self.nightscout_json[0]["sgv"]
 
     def run(self):
         task.LoopingCall(self.main).start(self.refresh_rate)
@@ -160,17 +178,19 @@ class HueConnector:
 
 
 class TimeParser:
-
     def __init__(self, nightscout_time, timezone_difference):
         nightscout_time = parse(nightscout_time)
-        self.nightscout_time = timedelta(hours=nightscout_time.hour, minutes=nightscout_time.minute,
-                                         seconds=nightscout_time.minute)
+        self.nightscout_time = timedelta(
+            hours=nightscout_time.hour,
+            minutes=nightscout_time.minute,
+            seconds=nightscout_time.minute,
+        )
 
         self.timezone_difference = timezone_difference
 
     def nightscout_in_range(self, now: timedelta, difference: int) -> bool:
         diff = time(minute=difference)
-        x = (now - self.nightscout_time)
+        x = now - self.nightscout_time
         return x.seconds // 60 < diff.second // 60
 
     def get_real_timezone(self) -> timedelta:
@@ -185,7 +205,10 @@ class TimeParser:
         return gmt_now - difference
 
     def in_range(self, start_time: str, end_time: str, now: timedelta) -> bool:
-        start_time, end_time = [[int(x) for x in start_time.split(":")], [int(x) for x in end_time.split(":")]]
+        start_time, end_time = [
+            [int(x) for x in start_time.split(":")],
+            [int(x) for x in end_time.split(":")],
+        ]
 
         start_time = timedelta(
             hours=int(start_time[0]), minutes=start_time[1] if start_time else 0
