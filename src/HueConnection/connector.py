@@ -31,6 +31,7 @@ class HueConnector:
         self.phillips_ip = phillips_ip + self.phillips_username + "/"
 
         # Defines other variables
+        self.nightscout_json = None
         self.nightscout_url = kwargs.get("n_url")
         self.light_id = kwargs.get("light_id")
         self.high_color = kwargs.get("high_color")
@@ -83,6 +84,14 @@ class HueConnector:
             }
 
     def main(self):
+        """Main loop of the program.
+           This loop gets latest nightscout information and acts accordingly!
+        """
+        self.nightscout_json = requests.get(
+            f"{self.nightscout_url + '/' if not self.nightscout_url.endswith('/') else self.nightscout_url}api/v1/entries.json",
+            data={"count": 1},
+        ).json()
+
         if not self.delayed:
             print(
                 f"Nighstout delay with real life is too big. Changing colour to {self.get_color(self.glucose_level, True)}")
@@ -113,13 +122,6 @@ class HueConnector:
     def change_color(self):
         for i in self.light_id.split(','):
             requests.put(f'http://{self.phillips_ip}lights/{i}/state', data=self.get_color(self.glucose_level))
-
-    @property
-    def nightscout_json(self):
-        return requests.get(
-            f"{self.nightscout_url + '/' if not self.nightscout_url.endswith('/') else self.nightscout_url}api/v1/entries.json",
-            data={"count": 1},
-        ).json()
 
     @property
     def time_checker(self):
